@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Contains entity position handling and entity rendering logic"""
+
 import enum
 import random
 from dataclasses import dataclass

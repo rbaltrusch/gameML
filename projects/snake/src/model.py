@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Contains the neural network implementation"""
+
 import enum
 from typing import List
 

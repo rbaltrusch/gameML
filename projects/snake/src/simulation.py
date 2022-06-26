@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Contains the game logic for the snake game"""
+
 from typing import Dict, List
 
 import numpy
@@ -64,7 +67,7 @@ class Simulation:
             square.entity = entity
         return max(0, self.score)
 
-    def update_game(
+    def update_game(  # pylint: disable=too-many-arguments
         self,
         squares: List[Square],
         squares_dict: Dict[Position, Square],

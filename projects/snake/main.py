@@ -1,4 +1,5 @@
-"""Pygame game"""
+# -*- coding: utf-8 -*-
+"""Machine learning algorithm for the game snake, visualised with pygame."""
 
 import random
 
@@ -25,7 +26,24 @@ POINTS_FOR_SURVIVING = 1
 POINTS_FOR_EATING = 20
 
 
+def back_propagation(models, squares, squares_dict):
+    """Back propagation draft"""
+    for model in models:
+        layer = random.choice(model.layers)
+        values = list(zip(*[random.choices(list(range(x)), k=5) for x in layer.shape]))
+        previous_values = [layer[x, y] for x, y in values]
+        for x, y in values:
+            layer[x, y] *= numpy.random.rand() * 2 - 1
+        rating = Simulation(POINTS_FOR_SURVIVING, POINTS_FOR_EATING).run(
+            model, squares, squares_dict, MAX_MOVES_WITHOUT_EATING
+        )
+        if rating < model.rating:
+            for (x, y), previous_value in zip(values, previous_values):
+                layer[x, y] = previous_value
+
+
 def main():
+    """Main function"""
     if not NUMBER_OF_MODELS or not GENERATIONS:
         return
 
@@ -56,20 +74,6 @@ def main():
         models = sorted(models, key=lambda x: x.rating, reverse=True)[
             :MODELS_SELECTED_PER_GENERATION
         ]
-        # for model in models:
-        #     layer = random.choice(model.layers)
-        #     values = list(
-        #         zip(*[random.choices(list(range(x)), k=5) for x in layer.shape])
-        #     )
-        #     previous_values = [layer[x, y] for x, y in values]
-        #     for x, y in values:
-        #         layer[x, y] *= numpy.random.rand() * 2 - 1
-        #     rating = Simulation().run(
-        #         model, squares, squares_dict, MAX_MOVES_WITHOUT_EATING
-        #     )
-        #     if rating < model.rating:
-        #         for (x, y), previous_value in zip(values, previous_values):
-        #             layer[x, y] = previous_value
 
         models.extend(
             [
@@ -80,10 +84,10 @@ def main():
         )
         print(f"Step {i}: Best model rating", models[0].rating)
 
-    # for _ in range(5):
-    #     VisualSimulation(
-    #         SCREEN_DIMENSIONS, POINTS_FOR_SURVIVING, POINTS_FOR_EATING
-    #     ).run(models[0], squares, squares_dict, MAX_MOVES_WITHOUT_EATING)
+    for _ in range(5):
+        VisualSimulation(
+            SCREEN_DIMENSIONS, POINTS_FOR_SURVIVING, POINTS_FOR_EATING
+        ).run(models[0], squares, squares_dict, MAX_MOVES_WITHOUT_EATING)
 
 
 if __name__ == "__main__":
