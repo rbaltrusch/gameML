@@ -24,6 +24,13 @@ def encode_entity(entity: Entities) -> List[int]:
     return [int(i == entity.value.number) for i in range(5)]
 
 
+@dataclass(frozen=True)
+class SimulationStep:
+    next_state: NpArray
+    reward: float
+    done: bool
+
+
 @dataclass
 class Simulation:  # pylint: disable=too-many-instance-attributes
 
@@ -44,9 +51,10 @@ class Simulation:  # pylint: disable=too-many-instance-attributes
         self.snake = [self._init_snake(self.squares_dict)]
         self.apple = init_apple(self.squares)
 
-    def init(self):
+    def init(self) -> NpArray:
         """Initialises simulation"""
         self.__post_init__()
+        return self._encode()
 
     def reset(self):
         """restore squares state"""
@@ -57,11 +65,22 @@ class Simulation:  # pylint: disable=too-many-instance-attributes
         self.init()
         while not self.terminated:
             if not self.paused:
-                move = model.compute(values=encode_squares(self.squares))
+                move = model.compute(values=self._encode())
                 self._update_game(move)
             self.render(self.squares)
         self.reset()
         return max(0, self.score)
+
+    def step(self, move: Position) -> SimulationStep:
+        previous_score = self.score
+        self._update_game(move)
+        reward = self.score - previous_score
+        return SimulationStep(
+            next_state=self._encode(), reward=reward, done=self.terminated
+        )
+
+    def _encode(self):
+        return encode_squares(self.squares)
 
     def _update_game(self, move: Position):  # pylint: disable=too-many-arguments
         if not self.snake:
