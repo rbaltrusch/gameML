@@ -85,6 +85,9 @@ def main():
                 for _ in range(CLONES)
             ]
         )
+
+        # to avoid population degeneration on a local optimum
+        models.extend(init_model() for _ in range(NEW_MODELS_PER_GENERATION))
         print(f"Step {i}: Best model rating", models[0].rating)
 
     # show trained seed, then with a random seed
