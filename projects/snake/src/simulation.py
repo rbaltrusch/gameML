@@ -45,13 +45,12 @@ class Simulation:
         self.paused = False
         self.terminated = False
         self.score = 0
-        init_apple(squares)
-        # init_square([squares_dict[1, 1]], Entities.APPLE)
+        apple = init_apple(squares)
         while not self.terminated and not over:
             if not self.paused:
                 move = model.compute(values=encode_squares(squares))
-                over = self.update_game(
-                    squares, squares_dict, snake, move, max_moves_without_eating
+                over, apple = self.update_game(
+                    squares, squares_dict, snake, apple, move, max_moves_without_eating
                 )
             self.render(squares)
 
@@ -69,30 +68,34 @@ class Simulation:
         max_moves_without_eating: int,
     ) -> bool:
         if not snake:
-            return True
+            return (True, apple)
 
         pos = snake[0].grid_position
         new_square = squares_dict[pos.x + move.x, pos.y + move.y]
         if new_square.entity in [Entities.WALL, Entities.SNAKE]:
-            return True
+            return (True, apple)
 
         snake[0].entity = Entities.SNAKE
         if new_square.entity == Entities.EMPTY:
             self.moves_since_eating += 1
+            normalized_distance = (
+                math.dist(snake[0].grid_position, apple.grid_position)
+                / len(squares) ** 0.5
+            )
+            self.score += self.points_for_surviving * (1 - normalized_distance)
             last_square = snake.pop()
             last_square.entity = Entities.EMPTY
-            self.score += self.points_for_surviving
         else:
             self.moves_since_eating = 0
             for square in squares:
                 if square.entity == Entities.APPLE:
                     square.entity = Entities.EMPTY
                     break
-            init_apple(squares)
+            apple = init_apple(squares)
             self.score += self.points_for_eating
 
         if self.moves_since_eating > max_moves_without_eating:
-            return True
+            return (True, apple)
 
         snake.insert(0, new_square)
         new_square.entity = Entities.SNAKE_HEAD
