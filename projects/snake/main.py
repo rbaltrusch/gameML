@@ -3,8 +3,6 @@
 
 import random
 
-import numpy
-
 from src.entity import Entities, init_squares
 from src.model import Model, Moves
 from src.simulation import Simulation, VisualSimulation
@@ -26,22 +24,6 @@ LAYER_SIZE = 100
 POINTS_FOR_SURVIVING = 1
 POINTS_FOR_EATING = 100
 SEED = 1
-
-
-def back_propagation(models, squares, squares_dict):
-    """Back propagation draft"""
-    for model in models:
-        layer = random.choice(model.layers)
-        values = list(zip(*[random.choices(list(range(x)), k=5) for x in layer.shape]))
-        previous_values = [layer[x, y] for x, y in values]
-        for x, y in values:
-            layer[x, y] *= numpy.random.rand() * 2 - 1
-        rating = Simulation(POINTS_FOR_SURVIVING, POINTS_FOR_EATING).run(
-            model, squares, squares_dict, MAX_MOVES_WITHOUT_EATING
-        )
-        if rating < model.rating:
-            for (x, y), previous_value in zip(values, previous_values):
-                layer[x, y] = previous_value
 
 
 def main():
