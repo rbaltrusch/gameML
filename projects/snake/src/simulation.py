@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 """Contains the game logic for the snake game"""
 
-from typing import Dict, List
+import math
+from typing import Dict, List, Tuple
 
 import numpy
 import pygame
 
 from src.entity import Entities, Square, init_apple, init_square
-from src.model import Model
+from src.model import Model, NpArray
 from src.util import Position
 
 # pylint: disable=missing-class-docstring, missing-docstring, no-member, invalid-name
 
 
-def encode_squares(squares: List[Square]) -> numpy.ndarray:
+def encode_squares(squares: List[Square]) -> NpArray:
     return numpy.array([x for square in squares for x in encode_entity(square.entity)])
 
 
@@ -64,14 +65,15 @@ class Simulation:
         squares: List[Square],
         squares_dict: Dict[Position, Square],
         snake: List[Square],
+        apple: Square,
         move: Position,
         max_moves_without_eating: int,
-    ) -> bool:
+    ) -> Tuple[bool, Square]:
         if not snake:
             return (True, apple)
 
         pos = snake[0].grid_position
-        new_square = squares_dict[pos.x + move.x, pos.y + move.y]
+        new_square = squares_dict[pos.x + move.x, pos.y + move.y]  # type: ignore
         if new_square.entity in [Entities.WALL, Entities.SNAKE]:
             return (True, apple)
 
@@ -101,23 +103,30 @@ class Simulation:
         new_square.entity = Entities.SNAKE_HEAD
         return (False, apple)
 
-    def render(self, squares):
+    def render(self, squares: List[Square]):
         pass
 
     @staticmethod
     def init_snake(squares_dict: Dict[Position, Square]) -> Square:
-        return init_square([squares_dict[3, 3]], Entities.SNAKE_HEAD)
+        return init_square([squares_dict[3, 3]], Entities.SNAKE_HEAD)  # type: ignore
 
 
 class VisualSimulation(Simulation):
-    def __init__(self, screen_size, points_for_surviving: int, points_for_eating: int):
+    def __init__(
+        self,
+        screen_size: Tuple[int, int],
+        points_for_surviving: int,
+        points_for_eating: int,
+    ):
         super().__init__(points_for_surviving, points_for_eating)
         pygame.init()
-        self.screen = pygame.display.set_mode(screen_size)
+        self.screen: pygame.surface.Surface = pygame.display.set_mode(
+            screen_size
+        )  # pylint: disable=c-extension-no-member
         self.clock = pygame.time.Clock()
         self.paused = True
 
-    def render(self, squares):
+    def render(self, squares: List[Square]):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.terminated = False

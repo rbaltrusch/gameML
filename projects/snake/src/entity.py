@@ -50,12 +50,12 @@ class Square:
     square_size: int
     entity: Entities = Entities.EMPTY
 
-    def render(self, screen: pygame.Surface):
+    def render(self, screen: pygame.surface.Surface):
         width = 1
         pygame.draw.rect(
             screen,
             tuple(self.entity.value.colour),
-            (*self.position, self.square_size, self.square_size),
+            (*self.position, self.square_size, self.square_size),  # type: ignore
             width,
         )
 
@@ -68,7 +68,7 @@ class Square:
         return Position(self.x, self.y)
 
 
-def init_squares(width, height, square_size):
+def init_squares(width: int, height: int, square_size: int):
     squares = [Square(x, y, square_size) for x in range(width) for y in range(height)]
 
     # place wall at edges of map

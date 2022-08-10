@@ -1,3 +1,6 @@
-from collections import namedtuple
+from typing import NamedTuple
 
-Position = namedtuple("Position", ["x", "y"])
+
+class Position(NamedTuple):
+    x: int
+    y: int
