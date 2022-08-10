@@ -14,18 +14,11 @@ from src.util import Position
 
 
 def encode_squares(squares: List[Square]) -> numpy.ndarray:
-    return numpy.array([encode_entity(square.entity) for square in squares])
+    return numpy.array([x for square in squares for x in encode_entity(square.entity)])
 
 
-def encode_entity(entity: Entities) -> float:
-    # speed optimization
-    if entity == Entities.EMPTY:
-        return 0
-    if entity == Entities.WALL:
-        return 1
-    if entity == Entities.SNAKE:
-        return 50
-    return 20
+def encode_entity(entity: Entities) -> List[int]:
+    return [int(i == entity.value.number) for i in range(5)]
 
 
 class Simulation:
