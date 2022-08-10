@@ -69,6 +69,7 @@ def main():
     simulation = Simulation(POINTS_FOR_SURVIVING, POINTS_FOR_EATING)
     for i in range(GENERATIONS):
         for model in models:
+            random.seed(SEED)
             model.rating = simulation.run(
                 model, squares, squares_dict, MAX_MOVES_WITHOUT_EATING
             )
@@ -86,7 +87,10 @@ def main():
         )
         print(f"Step {i}: Best model rating", models[0].rating)
 
-    for _ in range(5):
+    # show trained seed, then with a random seed
+    input("Press ENTER-key to start visual simulation...")
+    for seed in [SEED, None]:
+        random.seed(seed)
         VisualSimulation(
             SCREEN_DIMENSIONS, POINTS_FOR_SURVIVING, POINTS_FOR_EATING
         ).run(models[0], squares, squares_dict, MAX_MOVES_WITHOUT_EATING)
