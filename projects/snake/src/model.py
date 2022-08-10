@@ -47,8 +47,8 @@ class Model:
             if bias is not None:
                 values += bias
             values = sigmoid(values)
-        moves = decode_move(values)
-        return lookup_position(moves)
+        move = decode_move(values)
+        return lookup_position(move)
 
     def clone(self, weight_divergence: float):
         model = self.__class__(0, 0, 0, 0)
