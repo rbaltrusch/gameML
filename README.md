@@ -19,6 +19,17 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
+## Planned games
+
+Games for which a small implementation and training using a neural network is planned include:
+- tictactoe
+- battleship
+- minesweeper
+- pong
+- asteroids
+- poker
+
+
 ## Contributions
 
 To contribute, please read the [contribution guidelines](CONTRIBUTING.md).
