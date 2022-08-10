@@ -68,7 +68,7 @@ class Square:
         return Position(self.x, self.y)
 
 
-def init_squares(width: int, height: int, square_size: int):
+def init_squares(width: int, height: int, square_size: int) -> List[Square]:
     squares = [Square(x, y, square_size) for x in range(width) for y in range(height)]
 
     # place wall at edges of map
