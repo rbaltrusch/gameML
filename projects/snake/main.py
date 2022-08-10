@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Machine learning algorithm for the game snake, visualised with pygame."""
 
-import random
-
 from src.entity import Entities, init_squares
 from src.model import Model, Moves
 from src.simulation import Simulation, VisualSimulation
@@ -48,10 +46,9 @@ def main():
 
     models = [init_model() for _ in range(NUMBER_OF_MODELS)]
 
-    simulation = Simulation(POINTS_FOR_SURVIVING, POINTS_FOR_EATING)
+    simulation = Simulation(POINTS_FOR_SURVIVING, POINTS_FOR_EATING, SEED)
     for i in range(GENERATIONS):
         for model in models:
-            random.seed(SEED)
             model.rating = simulation.run(
                 model, squares, squares_dict, MAX_MOVES_WITHOUT_EATING
             )
@@ -75,9 +72,8 @@ def main():
     # show trained seed, then with a random seed
     input("Press ENTER-key to start visual simulation...")
     for seed in [SEED, None]:
-        random.seed(seed)
         VisualSimulation(
-            SCREEN_DIMENSIONS, POINTS_FOR_SURVIVING, POINTS_FOR_EATING
+            SCREEN_DIMENSIONS, POINTS_FOR_SURVIVING, POINTS_FOR_EATING, seed
         ).run(models[0], squares, squares_dict, MAX_MOVES_WITHOUT_EATING)
 
 

@@ -2,7 +2,8 @@
 """Contains the game logic for the snake game"""
 
 import math
-from typing import Dict, List, Tuple
+import random
+from typing import Dict, List, Optional, Tuple
 
 import numpy
 import pygame
@@ -23,9 +24,12 @@ def encode_entity(entity: Entities) -> List[int]:
 
 
 class Simulation:
-    def __init__(self, points_for_surviving: int, points_for_eating: int):
+    def __init__(
+        self, points_for_surviving: int, points_for_eating: int, seed: Optional[int]
+    ):
         self.points_for_surviving = points_for_surviving
         self.points_for_eating = points_for_eating
+        self.seed = seed
         self.moves_since_eating = 0
         self.paused = False
         self.terminated = False
@@ -38,6 +42,7 @@ class Simulation:
         squares_dict: Dict[Position, Square],
         max_moves_without_eating: int,
     ) -> int:
+        random.seed(self.seed)
         initial_entities = [square.entity for square in squares]
         snake = [self.init_snake(squares_dict)]
 
@@ -117,8 +122,9 @@ class VisualSimulation(Simulation):
         screen_size: Tuple[int, int],
         points_for_surviving: int,
         points_for_eating: int,
+        seed: Optional[int],
     ):
-        super().__init__(points_for_surviving, points_for_eating)
+        super().__init__(points_for_surviving, points_for_eating, seed)
         pygame.init()
         self.screen: pygame.surface.Surface = pygame.display.set_mode(
             screen_size
