@@ -26,10 +26,3 @@ repos:
     -   id: pylint
         language_version: python3
         args: [--fail-under=9]
-
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910-1
-    hooks:
-    -   id: mypy
-        files: ^projects/snake/
-        args: [--ignore-missing-imports]
