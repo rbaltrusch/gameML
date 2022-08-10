@@ -44,7 +44,7 @@ class Simulation:
     ) -> int:
         random.seed(self.seed)
         initial_entities = [square.entity for square in squares]
-        snake = [self.init_snake(squares_dict)]
+        snake = [self._init_snake(squares_dict)]
 
         over = False
         self.moves_since_eating = 0
@@ -55,7 +55,7 @@ class Simulation:
         while not self.terminated and not over:
             if not self.paused:
                 move = model.compute(values=encode_squares(squares))
-                over, apple = self.update_game(
+                over, apple = self._update_game(
                     squares, squares_dict, snake, apple, move, max_moves_without_eating
                 )
             self.render(squares)
@@ -65,7 +65,7 @@ class Simulation:
             square.entity = entity
         return max(0, self.score)
 
-    def update_game(  # pylint: disable=too-many-arguments
+    def _update_game(  # pylint: disable=too-many-arguments
         self,
         squares: List[Square],
         squares_dict: Dict[Position, Square],
@@ -112,32 +112,36 @@ class Simulation:
         pass
 
     @staticmethod
-    def init_snake(squares_dict: Dict[Position, Square]) -> Square:
+    def _init_snake(squares_dict: Dict[Position, Square]) -> Square:
         return init_square([squares_dict[3, 3]], Entities.SNAKE_HEAD)  # type: ignore
 
 
-class VisualSimulation(Simulation):
-    def __init__(
-        self,
-        screen_size: Tuple[int, int],
-        points_for_surviving: int,
-        points_for_eating: int,
-        seed: Optional[int],
-    ):
-        super().__init__(points_for_surviving, points_for_eating, seed)
+class VisualSimulation:
+    def __init__(self, screen_size: Tuple[int, int], simulation: Simulation):
+        self.simulation = simulation
+        self.simulation.paused = True
+        self.simulation.render = self.render
         pygame.init()
-        self.screen: pygame.surface.Surface = pygame.display.set_mode(
-            screen_size
-        )  # pylint: disable=c-extension-no-member
+        self.screen: pygame.surface.Surface = (  # pylint: disable=c-extension-no-member
+            pygame.display.set_mode(screen_size)
+        )
         self.clock = pygame.time.Clock()
-        self.paused = True
+
+    def run(
+        self,
+        model: Model,
+        squares: List[Square],
+        squares_dict: Dict[Position, Square],
+        max_moves_without_eating: int,
+    ) -> int:
+        return self.simulation.run(
+            model, squares, squares_dict, max_moves_without_eating
+        )
 
     def render(self, squares: List[Square]):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.terminated = False
-            elif event.type == pygame.KEYDOWN:
-                self.paused = False
+            if event.type == pygame.KEYDOWN:
+                self.simulation.paused = False
 
         self.screen.fill((0, 0, 0))
         for square in squares:

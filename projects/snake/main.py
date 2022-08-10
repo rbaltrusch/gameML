@@ -72,9 +72,10 @@ def main():
     # show trained seed, then with a random seed
     input("Press ENTER-key to start visual simulation...")
     for seed in [SEED, None]:
-        VisualSimulation(
-            SCREEN_DIMENSIONS, POINTS_FOR_SURVIVING, POINTS_FOR_EATING, seed
-        ).run(models[0], squares, squares_dict, MAX_MOVES_WITHOUT_EATING)
+        simulation.seed = seed
+        VisualSimulation(SCREEN_DIMENSIONS, simulation).run(
+            models[0], squares, squares_dict, MAX_MOVES_WITHOUT_EATING
+        )
 
 
 if __name__ == "__main__":
