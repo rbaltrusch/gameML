@@ -83,6 +83,7 @@ class Simulation:
         if new_square.entity in [Entities.WALL, Entities.SNAKE]:
             return True
 
+        snake[0].entity = Entities.SNAKE
         if new_square.entity == Entities.EMPTY:
             self.moves_since_eating += 1
             last_square = snake.pop()
@@ -101,15 +102,15 @@ class Simulation:
             return True
 
         snake.insert(0, new_square)
-        new_square.entity = Entities.SNAKE
-        return False
+        new_square.entity = Entities.SNAKE_HEAD
+        return (False, apple)
 
     def render(self, squares):
         pass
 
     @staticmethod
     def init_snake(squares_dict: Dict[Position, Square]) -> Square:
-        return init_square([squares_dict[3, 3]], Entities.SNAKE)
+        return init_square([squares_dict[3, 3]], Entities.SNAKE_HEAD)
 
 
 class VisualSimulation(Simulation):

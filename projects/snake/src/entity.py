@@ -38,8 +38,9 @@ class Entity:
 class Entities(enum.Enum):
     APPLE = Entity(number=4, colour=Colour(red=255))
     EMPTY = Entity(number=3, colour=Colour(blue=50))
-    SNAKE = Entity(number=2, colour=Colour(green=255))
-    WALL = Entity(number=1, colour=Colour(red=50, green=50, blue=50))
+    SNAKE = Entity(number=2, colour=Colour(green=150))
+    SNAKE_HEAD = Entity(number=1, colour=Colour(green=255, blue=50, red=50))
+    WALL = Entity(number=0, colour=Colour(red=50, green=50, blue=50))
 
 
 @dataclass
