@@ -2,13 +2,17 @@
 """Contains the neural network implementation"""
 
 import enum
-from typing import List
+from typing import List, Optional, Tuple
 
 import numpy
 
 from src.util import Position
 
 # pylint: disable=missing-class-docstring, missing-docstring, no-member, invalid-name
+
+
+def sigmoid(x: numpy.ndarray) -> numpy.ndarray:
+    return 1 / (1 + (numpy.exp(-x)))
 
 
 class Moves(enum.Enum):
@@ -19,15 +23,27 @@ class Model:
     def __init__(self, inputs, outputs, layers, layer_size):
         self.rating = 0
         self.layers: List[numpy.ndarray] = (
-            [numpy.random.normal(size=(inputs, layer_size))]
-            + [numpy.random.normal(size=(layer_size, layer_size))] * layers
-            + [numpy.random.normal(size=(layer_size, outputs))]
+            self._construct_matrices(shape=(inputs, layer_size), num=1)
+            + self._construct_matrices(shape=(layer_size, layer_size), num=layers)
+            + self._construct_matrices(shape=(layer_size, outputs), num=1)
         )
+        self.biases: List[Optional[numpy.ndarray]] = [
+            None,
+            *self._construct_matrices(shape=(1, layer_size), num=layers),
+            None,
+        ]
+
+    @staticmethod
+    def _construct_matrices(shape: Tuple[int, int], *, num: int) -> numpy.ndarray:
+        return [numpy.random.normal(size=shape) for _ in range(num)]
 
     def compute(self, values: numpy.ndarray) -> Position:
-        for layer in self.layers:
+        for (layer, bias) in zip(self.layers, self.biases):
             values.shape = (1, layer.shape[0])
             values = numpy.dot(values, layer)
+            if bias is not None:
+                values += bias
+            values = sigmoid(values)
         moves = decode_move(values)
         return lookup_position(moves)
 
@@ -36,6 +52,12 @@ class Model:
         model.layers = [
             layer + (numpy.random.normal(size=layer.shape) * 2 - 1) * weight_divergence
             for layer in self.layers
+        ]
+        model.biases = [
+            bias + (numpy.random.normal(size=bias.shape) * 2 - 1) * weight_divergence
+            if bias is not None
+            else bias
+            for bias in self.biases
         ]
         return model
 
