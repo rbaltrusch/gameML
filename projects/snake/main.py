@@ -5,7 +5,7 @@ import random
 
 import numpy
 
-from src.entity import init_squares
+from src.entity import Entities, init_squares
 from src.model import Model, Moves
 from src.simulation import Simulation, VisualSimulation
 from src.util import Position
@@ -47,6 +47,14 @@ def main():
     if not NUMBER_OF_MODELS or not GENERATIONS:
         return
 
+    def init_model():
+        return Model(
+            inputs=len(squares) * len(Entities),
+            outputs=len(Moves),
+            layers=LAYERS,
+            layer_size=LAYER_SIZE,
+        )
+
     squares = init_squares(
         width=SCREEN_DIMENSIONS.x // SQUARE_SIZE,
         height=SCREEN_DIMENSIONS.y // SQUARE_SIZE,
@@ -54,15 +62,7 @@ def main():
     )
     squares_dict = {square.grid_position: square for square in squares}
 
-    models = [
-        Model(
-            inputs=len(squares),
-            outputs=len(Moves),
-            layers=LAYERS,
-            layer_size=LAYER_SIZE,
-        )
-        for _ in range(NUMBER_OF_MODELS)
-    ]
+    models = [init_model() for _ in range(NUMBER_OF_MODELS)]
 
     simulation = Simulation(POINTS_FOR_SURVIVING, POINTS_FOR_EATING)
     for i in range(GENERATIONS):
