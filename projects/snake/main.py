@@ -46,12 +46,18 @@ def main():
 
     models = [init_model() for _ in range(NUMBER_OF_MODELS)]
 
-    simulation = Simulation(POINTS_FOR_SURVIVING, POINTS_FOR_EATING, SEED)
+    simulation = Simulation(
+        squares,
+        squares_dict,
+        POINTS_FOR_SURVIVING,
+        POINTS_FOR_EATING,
+        MAX_MOVES_WITHOUT_EATING,
+        SEED,
+    )
+
     for i in range(GENERATIONS):
         for model in models:
-            model.rating = simulation.run(
-                model, squares, squares_dict, MAX_MOVES_WITHOUT_EATING
-            )
+            model.rating = simulation.run(model)
 
         models = sorted(models, key=lambda x: x.rating, reverse=True)[
             :MODELS_SELECTED_PER_GENERATION
@@ -73,9 +79,7 @@ def main():
     input("Press ENTER-key to start visual simulation...")
     for seed in [SEED, None]:
         simulation.seed = seed
-        VisualSimulation(SCREEN_DIMENSIONS, simulation).run(
-            models[0], squares, squares_dict, MAX_MOVES_WITHOUT_EATING
-        )
+        VisualSimulation(SCREEN_DIMENSIONS, simulation).run(models[0])
 
 
 if __name__ == "__main__":

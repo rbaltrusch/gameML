@@ -3,6 +3,7 @@
 
 import math
 import random
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 import numpy
@@ -23,90 +24,81 @@ def encode_entity(entity: Entities) -> List[int]:
     return [int(i == entity.value.number) for i in range(5)]
 
 
-class Simulation:
-    def __init__(
-        self, points_for_surviving: int, points_for_eating: int, seed: Optional[int]
-    ):
-        self.points_for_surviving = points_for_surviving
-        self.points_for_eating = points_for_eating
-        self.seed = seed
-        self.moves_since_eating = 0
-        self.paused = False
-        self.terminated = False
-        self.score = 0
+@dataclass
+class Simulation:  # pylint: disable=too-many-instance-attributes
 
-    def run(
-        self,
-        model: Model,
-        squares: List[Square],
-        squares_dict: Dict[Position, Square],
-        max_moves_without_eating: int,
-    ) -> int:
+    squares: List[Square]
+    squares_dict: Dict[Position, Square]
+    points_for_surviving: int
+    points_for_eating: int
+    max_moves_without_eating: int
+    seed: Optional[int]
+
+    def __post_init__(self):
         random.seed(self.seed)
-        initial_entities = [square.entity for square in squares]
-        snake = [self._init_snake(squares_dict)]
-
-        over = False
         self.moves_since_eating = 0
         self.paused = False
         self.terminated = False
         self.score = 0
-        apple = init_apple(squares)
-        while not self.terminated and not over:
-            if not self.paused:
-                move = model.compute(values=encode_squares(squares))
-                over, apple = self._update_game(
-                    squares, squares_dict, snake, apple, move, max_moves_without_eating
-                )
-            self.render(squares)
+        self.initial_entities = [square.entity for square in self.squares]
+        self.snake = [self._init_snake(self.squares_dict)]
+        self.apple = init_apple(self.squares)
 
-        # restore squares state
-        for square, entity in zip(squares, initial_entities):
+    def init(self):
+        """Initialises simulation"""
+        self.__post_init__()
+
+    def reset(self):
+        """restore squares state"""
+        for square, entity in zip(self.squares, self.initial_entities):
             square.entity = entity
+
+    def run(self, model: Model) -> int:
+        self.init()
+        while not self.terminated:
+            if not self.paused:
+                move = model.compute(values=encode_squares(self.squares))
+                self._update_game(move)
+            self.render(self.squares)
+        self.reset()
         return max(0, self.score)
 
-    def _update_game(  # pylint: disable=too-many-arguments
-        self,
-        squares: List[Square],
-        squares_dict: Dict[Position, Square],
-        snake: List[Square],
-        apple: Square,
-        move: Position,
-        max_moves_without_eating: int,
-    ) -> Tuple[bool, Square]:
-        if not snake:
-            return (True, apple)
+    def _update_game(self, move: Position):  # pylint: disable=too-many-arguments
+        if not self.snake:
+            self.terminated = True
+            return
 
-        pos = snake[0].grid_position
-        new_square = squares_dict[pos.x + move.x, pos.y + move.y]  # type: ignore
+        pos = self.snake[0].grid_position
+        new_square = self.squares_dict[pos.x + move.x, pos.y + move.y]  # type: ignore
         if new_square.entity in [Entities.WALL, Entities.SNAKE]:
-            return (True, apple)
+            self.terminated = True
+            return
 
-        snake[0].entity = Entities.SNAKE
+        self.snake[0].entity = Entities.SNAKE
         if new_square.entity == Entities.EMPTY:
             self.moves_since_eating += 1
             normalized_distance = (
-                math.dist(snake[0].grid_position, apple.grid_position)
-                / len(squares) ** 0.5
+                math.dist(self.snake[0].grid_position, self.apple.grid_position)
+                / len(self.squares) ** 0.5
             )
             self.score += self.points_for_surviving * (1 - normalized_distance)
-            last_square = snake.pop()
+            last_square = self.snake.pop()
             last_square.entity = Entities.EMPTY
         else:
             self.moves_since_eating = 0
-            for square in squares:
+            for square in self.squares:
                 if square.entity == Entities.APPLE:
                     square.entity = Entities.EMPTY
                     break
-            apple = init_apple(squares)
+            self.apple = init_apple(self.squares)
             self.score += self.points_for_eating
 
-        if self.moves_since_eating > max_moves_without_eating:
-            return (True, apple)
+        if self.moves_since_eating > self.max_moves_without_eating:
+            self.terminated = True
+            return
 
-        snake.insert(0, new_square)
+        self.snake.insert(0, new_square)
         new_square.entity = Entities.SNAKE_HEAD
-        return (False, apple)
 
     def render(self, squares: List[Square]):
         pass
@@ -127,16 +119,8 @@ class VisualSimulation:
         )
         self.clock = pygame.time.Clock()
 
-    def run(
-        self,
-        model: Model,
-        squares: List[Square],
-        squares_dict: Dict[Position, Square],
-        max_moves_without_eating: int,
-    ) -> int:
-        return self.simulation.run(
-            model, squares, squares_dict, max_moves_without_eating
-        )
+    def run(self, model: Model) -> int:
+        return self.simulation.run(model)
 
     def render(self, squares: List[Square]):
         for event in pygame.event.get():
