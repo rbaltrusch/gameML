@@ -86,6 +86,9 @@ def get_empty_squares(squares: List[Square]) -> List[Square]:
 
 
 def init_square(squares: List[Square], entity: Entities) -> Square:
+    if len(squares) == 1 and squares[0].entity is entity:
+        return squares[0]
+
     empty_squares = get_empty_squares(squares)
     if not empty_squares:
         raise OutOfSpaceException
