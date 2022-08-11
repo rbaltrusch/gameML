@@ -4,13 +4,13 @@
 import math
 import random
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Protocol, Tuple
 
 import numpy
 import pygame
 
 from src.entity import Entities, Square, init_apple, init_square
-from src.model import Model, NpArray
+from src.model import Moves, NpArray, lookup_position
 from src.util import Position
 
 # pylint: disable=missing-class-docstring, missing-docstring, no-member, invalid-name
@@ -22,6 +22,11 @@ def encode_squares(squares: List[Square]) -> NpArray:
 
 def encode_entity(entity: Entities) -> List[int]:
     return [int(i == entity.value.number) for i in range(5)]
+
+
+class ModelInterface(Protocol):
+    def compute(self, values: NpArray) -> Position:
+        ...
 
 
 @dataclass(frozen=True)
@@ -61,7 +66,7 @@ class Simulation:  # pylint: disable=too-many-instance-attributes
         for square, entity in zip(self.squares, self.initial_entities):
             square.entity = entity
 
-    def run(self, model: Model) -> int:
+    def run(self, model: ModelInterface) -> int:
         self.init()
         while not self.terminated:
             if not self.paused:
@@ -71,7 +76,8 @@ class Simulation:  # pylint: disable=too-many-instance-attributes
         self.reset()
         return max(0, self.score)
 
-    def step(self, move: Position) -> SimulationStep:
+    def step(self, action: Moves) -> SimulationStep:
+        move = lookup_position(action)
         previous_score = self.score
         self._update_game(move)
         reward = self.score - previous_score
@@ -138,7 +144,7 @@ class VisualSimulation:
         )
         self.clock = pygame.time.Clock()
 
-    def run(self, model: Model) -> int:
+    def run(self, model: ModelInterface) -> int:
         return self.simulation.run(model)
 
     def render(self, squares: List[Square]):
