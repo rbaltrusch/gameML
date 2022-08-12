@@ -3,7 +3,8 @@
 
 from src.entity import Entities, init_squares
 from src.model import Model, Moves
-from src.simulation import Simulation, VisualSimulation
+from src.simulation import Simulation, VisualSimulation, encode_squares_2d
+from src.tf_model import TfModel
 from src.util import Position
 
 # pylint: disable=missing-class-docstring, missing-docstring, no-member, invalid-name
@@ -22,6 +23,37 @@ LAYER_SIZE = 100
 POINTS_FOR_SURVIVING = 1
 POINTS_FOR_EATING = 100
 SEED = 1
+
+
+def main_tf():
+    width = SCREEN_DIMENSIONS.x // SQUARE_SIZE
+    height = SCREEN_DIMENSIONS.y // SQUARE_SIZE
+    squares = init_squares(width, height, square_size=SQUARE_SIZE)
+    squares_dict = {square.grid_position: square for square in squares}
+
+    simulation = Simulation(
+        squares,
+        squares_dict,
+        POINTS_FOR_SURVIVING,
+        POINTS_FOR_EATING,
+        MAX_MOVES_WITHOUT_EATING,
+        SEED,
+        encoder=encode_squares_2d,
+    )
+    tf_model = TfModel(
+        num_actions=len(Moves), input_size=(width, height, len(Entities))
+    )
+    tf_model.init_models()
+
+    try:
+        tf_model.train_model(simulation)
+    except KeyboardInterrupt:
+        pass
+
+    tf_model.save(filepath="tf_model.json")
+    simulation.reset()
+    visual_simulation = VisualSimulation(SCREEN_DIMENSIONS, simulation)
+    visual_simulation.run(model=tf_model)
 
 
 def main():
@@ -83,4 +115,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main_tf()
