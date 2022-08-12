@@ -4,7 +4,7 @@
 import math
 import random
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Protocol, Tuple
+from typing import Callable, Dict, List, Optional, Protocol, Tuple
 
 import numpy
 import pygame
@@ -18,6 +18,15 @@ from src.util import Position
 
 def encode_squares(squares: List[Square]) -> NpArray:
     return numpy.array([x for square in squares for x in encode_entity(square.entity)])
+
+
+def encode_squares_2d(squares: List[Square]) -> NpArray:
+    """Assumes that the board is a square and not a rectangle"""
+    width = int(math.sqrt(len(squares)))
+    np_array = numpy.ndarray(shape=(width, width, len(Entities)))
+    for square in squares:
+        np_array[square.grid_position, :] = numpy.array(encode_entity(square.entity))
+    return np_array
 
 
 def encode_entity(entity: Entities) -> List[int]:
@@ -45,6 +54,7 @@ class Simulation:  # pylint: disable=too-many-instance-attributes
     points_for_eating: int
     max_moves_without_eating: int
     seed: Optional[int]
+    encoder: Callable[[List[Square]], NpArray] = encode_squares
 
     def __post_init__(self):
         random.seed(self.seed)
@@ -86,7 +96,7 @@ class Simulation:  # pylint: disable=too-many-instance-attributes
         )
 
     def _encode(self):
-        return encode_squares(self.squares)
+        return self.encoder(self.squares)
 
     def _update_game(self, move: Position):  # pylint: disable=too-many-arguments
         if not self.snake:
